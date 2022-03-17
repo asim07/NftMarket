@@ -1,0 +1,38 @@
+{
+	"compiler": {
+		"version": "0.5.8+commit.23d335f2"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"details": "Library for managing addresses assigned to a Role.",
+			"methods": {},
+			"title": "Roles"
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"shibaLite.sol": "Roles"
+		},
+		"evmVersion": "petersburg",
+		"libraries": {},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"shibaLite.sol": {
+			"keccak256": "0xd2d7854b0fe9e510e3daa68c72258538c1753e242f0cb1ef757bd65f40c47191",
+			"urls": [
+				"bzzr://64da291644bd569cc70cfd2e489046b2babed8d40fcb113e31fd8f20664c144d"
+			]
+		}
+	},
+	"version": 1
+}

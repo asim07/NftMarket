@@ -1,0 +1,56 @@
+{
+	"compiler": {
+		"version": "0.5.8+commit.23d335f2"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_amountIn",
+						"type": "uint256"
+					}
+				],
+				"name": "calculateTax",
+				"outputs": [
+					{
+						"name": "taxAmount",
+						"type": "uint256"
+					}
+				],
+				"payable": false,
+				"stateMutability": "pure",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"methods": {}
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"shibaLite.sol": "CalculateTax"
+		},
+		"evmVersion": "petersburg",
+		"libraries": {},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"shibaLite.sol": {
+			"keccak256": "0x3cd4065ee3a7398ac6283f8aa50a2caae13b7222cf62c538f0a3d20d75285ac1",
+			"urls": [
+				"bzzr://46c547cbbae290452b0beb1d571626f6e9d16fc9fc80777587450c29e94f2a69"
+			]
+		}
+	},
+	"version": 1
+}

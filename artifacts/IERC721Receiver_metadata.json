@@ -1,0 +1,85 @@
+{
+	"compiler": {
+		"version": "0.5.8+commit.23d335f2"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"name": "onERC721Received",
+				"outputs": [
+					{
+						"name": "",
+						"type": "bytes4"
+					}
+				],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Interface for any contract that wants to support safeTransfers from ERC721 asset contracts.",
+			"methods": {
+				"onERC721Received(address,address,uint256,bytes)": {
+					"details": "The ERC721 smart contract calls this function on the recipient after a {IERC721-safeTransfer}. This function MUST return the function selector, otherwise the caller will revert the transaction. The selector to be returned can be obtained as `this.onERC721Received.selector`. This function MAY throw to revert and reject the transfer. Note: the ERC721 contract address is always the message sender.",
+					"params": {
+						"data": "Additional data with no specified format",
+						"from": "The address which previously owned the token",
+						"operator": "The address which called `safeTransferFrom` function",
+						"tokenId": "The NFT identifier which is being transferred"
+					},
+					"return": "bytes4 `bytes4(keccak256(\"onERC721Received(address,address,uint256,bytes)\"))`"
+				}
+			},
+			"title": "ERC721 token receiver interface"
+		},
+		"userdoc": {
+			"methods": {
+				"onERC721Received(address,address,uint256,bytes)": {
+					"notice": "Handle the receipt of an NFT"
+				}
+			}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"shibaLite.sol": "IERC721Receiver"
+		},
+		"evmVersion": "petersburg",
+		"libraries": {},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"shibaLite.sol": {
+			"keccak256": "0xd2d7854b0fe9e510e3daa68c72258538c1753e242f0cb1ef757bd65f40c47191",
+			"urls": [
+				"bzzr://64da291644bd569cc70cfd2e489046b2babed8d40fcb113e31fd8f20664c144d"
+			]
+		}
+	},
+	"version": 1
+}

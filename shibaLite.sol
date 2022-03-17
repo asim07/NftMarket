@@ -1264,6 +1264,16 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
 
     }
 
+    //handle royalties
+    struct Royalties {
+        address payable artist;
+        uint percentage;
+        bool secondarySale;
+    }
+
+    //map toke id against artist royalti
+    mapping(uint => Royalties) private royalties;
+
     // mapping auctions for each tokenId
     mapping(uint256 => Auction) public auctions;
 
@@ -1276,6 +1286,7 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
     event LimitBuy(address indexed from, address indexed to, uint256 amount);
     event MarketSell(address indexed from, address indexed to, uint256 amount);
     event MarketBuy(address indexed from, address indexed to, uint256 amount);
+    event RoyalityFee(address artist,uint amount,uint tokenId);
 
 
     constructor(address _owner, address payable _admin, uint256 _commissionRate, string memory name, string memory symbol, bool _anyoneCanMint,address _shibaLite) public 
@@ -1285,11 +1296,21 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
         require(_commissionRate<=100, "ERC721Matcha: Commission rate has to be between 0 and 100");
         commissionRate = _commissionRate;
         token = IshibaLite(_shibaLite);
-
     }
 
     function canSell(uint256 tokenId) public view returns (bool) {
         return (ownerOf(tokenId)==msg.sender && !auctions[tokenId].open);
+    }
+
+    function autodo(string memory tokenUri,uint percentage) public{
+            require(percentage <=10 && percentage >=1,"percentage Should be between 0 and 10 ");
+            autoMint(tokenUri,msg.sender);
+            royalties[autoTokenId] =  Royalties(msg.sender,percentage,false);
+
+    }
+
+    function checkRoyalti(uint id) public view returns(address,uint,bool){
+        return (royalties[id].artist,royalties[id].percentage,royalties[id].secondarySale);
     }
 
     // Sell option for a fixed price
@@ -1350,17 +1371,39 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
         // we need to call a transferFrom from this contract, which is the one with permission to sell the NFT
         callOptionalReturn(this, abi.encodeWithSelector(this.transferFrom.selector, owner, msg.sender, tokenId));
 
+        uint256 amount4admin;
+        uint256 amount4Artist;
+        uint amount4owner;
+        if(royalties[tokenId].secondarySale){
         // calculate amounts
-        uint256 amount4admin = msg.value.mul(commissionRate).div(100);
-        uint256 amount4owner = msg.value.sub(amount4admin);
+             amount4admin = msg.value.mul(commissionRate).div(100);
+             amount4Artist = msg.value.sub(amount4admin).mul(royalties[tokenId].percentage).div(100);
+             amount4owner = msg.value.sub(amount4Artist).sub(amount4admin);
+                     // to artist
+            (bool success3, ) = royalties[tokenId].artist.call.value(amount4Artist)("");
+            require(success3, "Transfer failed sending to artist.");
+             emit RoyalityFee(royalties[tokenId].artist,amount4Artist,tokenId);
 
-        // to owner
-        (bool success, ) = _wallets[tokenId].call.value(amount4owner)("");
-        require(success, "Transfer failed.");
+
+        } else {
+
+        // calculate amounts
+             amount4admin = msg.value.mul(commissionRate).div(100);
+             amount4owner = msg.value.sub(amount4admin);
+
+        }
 
         // to admin
         (bool success2, ) = admin.call.value(amount4admin)("");
-        require(success2, "Transfer failed.");
+        require(success2, "Transfer failed. sending to admin");
+
+
+        // to owner
+        (bool success, ) = _wallets[tokenId].call.value(amount4owner)("");
+        require(success, "Transfer failed sending to owner.");
+
+      
+       
 
         // close the sell
         sellBidPrice[tokenId] = 0;
@@ -1368,8 +1411,14 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
 
         soldFor[tokenId] = msg.value;
 
-        emit Sale(tokenId, owner, msg.sender, msg.value);
+        if(!royalties[tokenId].secondarySale){
+            royalties[tokenId].secondarySale = true;
+        }
+        
+
+        emit Sale(tokenId, owner, msg.sender, amount4owner);
         emit Commission(tokenId, owner, msg.value, commissionRate, amount4admin);
+
 
     }
 
@@ -1400,6 +1449,10 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
         _wallets[tokenId] = address(0);
 
         soldFor[tokenId] = _amount;
+
+        if(!royalties[tokenId].secondarySale){
+            royalties[tokenId].secondarySale = true;
+        }
 
         emit Sale(tokenId, owner, msg.sender, _amount);
 
@@ -1535,10 +1588,28 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
             // transfer the ownership of token to the highest bidder
             address payable highestBidder = auctions[tokenId].highestBidder;
 
-            // calculate payment amounts
-            uint256 amount4admin = auctions[tokenId].highestBid.mul(commissionRate).div(100);
-            uint256 amount4owner = auctions[tokenId].highestBid.sub(amount4admin);
+            uint256 amount4admin;
+            uint256 amount4Artist;
+            uint amount4owner;
+  
+    if(royalties[tokenId].secondarySale){
+        // calculate amounts
+             amount4admin = auctions[tokenId].highestBid.mul(commissionRate).div(100);
+             amount4Artist = auctions[tokenId].highestBid.sub(amount4admin).mul(royalties[tokenId].percentage).div(100);
+             amount4owner = auctions[tokenId].highestBid.sub(amount4Artist).sub(amount4admin);
+                     // to artist
+            (bool success3, ) = royalties[tokenId].artist.call.value(amount4Artist)("");
+            require(success3, "Transfer failed sending to artist.");
+             emit RoyalityFee(royalties[tokenId].artist,amount4Artist,tokenId);
 
+
+        } else {
+
+        // calculate amounts
+             amount4admin = auctions[tokenId].highestBid.mul(commissionRate).div(100);
+             amount4owner = auctions[tokenId].highestBid.sub(amount4admin);
+
+        }
             // to owner
             (bool success, ) = auctions[tokenId].beneficiary.call.value(amount4owner)("");
             require(success, "Transfer failed.");
@@ -1546,6 +1617,8 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
             // to admin
             (bool success2, ) = admin.call.value(amount4admin)("");
             require(success2, "Transfer failed.");
+
+               if(!royalties[tokenId].secondarySale){ royalties[tokenId].secondarySale = true; }
 
             emit Sale(tokenId, auctions[tokenId].beneficiary, highestBidder, auctions[tokenId].highestBid);
             emit Commission(tokenId, auctions[tokenId].beneficiary, auctions[tokenId].highestBid, commissionRate, amount4admin);
@@ -1565,6 +1638,7 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
 
         // finalize the auction
         delete auctions[tokenId];
+        royalties[tokenId].secondarySale;
 
     }
 
@@ -1612,7 +1686,18 @@ contract shibaLite is ERC721Full, ReentrancyGuard {
         anyoneCanMint=_anyoneCanMint;
     }
 
+    function updateRoyalti(uint amount,uint tokenId) external returns(bool success){
+        require(msg.sender == royalties[tokenId].artist,"Caller is not the artist of token");
+        royalties[tokenIdr].percentage = amount;
+        return true;
+    }
+
+    // //calculatetax
+
+    // function calculateTax(uint256 _amountIn) public pure returns(uint256 taxAmount){
+    //       return _amountIn/1000 * 6;
+    // }   
+
 
 
 }
-         
